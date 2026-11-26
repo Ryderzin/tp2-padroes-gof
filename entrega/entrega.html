@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Pesquisa e Implementação de Padrões de Projeto GoF — Strategy e Decorator</title>
+<style>
+  @page { size: A4; margin: 2.2cm 2cm 2cm 2cm; }
+  body { font-family: "Segoe UI", Arial, sans-serif; font-size: 11pt; line-height: 1.5; color: #1a1a1a; }
+  h1 { font-size: 20pt; margin: 0 0 .2em; }
+  h2 { font-size: 15pt; margin: 1.4em 0 .5em; border-bottom: 2px solid #2e7d32; padding-bottom: .15em; break-after: avoid; }
+  h3 { font-size: 12pt; margin: 1.1em 0 .4em; break-after: avoid; }
+  p { margin: .45em 0; text-align: justify; }
+  .capa { border-left: 6px solid #2e7d32; padding: .4em 0 .4em 1em; margin-bottom: 1.5em; }
+  .capa p { margin: .15em 0; text-align: left; }
+  .pergunta { font-weight: 600; margin-top: 1em; break-after: avoid; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  pre { font-family: Consolas, "Courier New", monospace; font-size: 8.8pt; line-height: 1.45; background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: .7em .9em; white-space: pre-wrap; break-inside: avoid; margin: .3em 0 .9em; }
+  .editor { break-inside: avoid; margin: .6em 0 1em; border-radius: 6px; overflow: hidden; background: #1e1e1e; }
+  .editor .aba { display: inline-block; background: #1e1e1e; color: #ffffff; font-family: "Segoe UI", Arial, sans-serif; font-size: 8.5pt; padding: .35em 1em; border-top: 2px solid #007acc; }
+  .editor::before { content: ""; display: block; }
+  .editor { background: linear-gradient(#252526 0, #252526 1.95em, #1e1e1e 1.95em); }
+  .editor pre { margin: 0; border-radius: 0; }
+  .vscode .kw { color: #569cd6; }
+  .vscode .ct { color: #c586c0; }
+  .vscode .ty { color: #4ec9b0; }
+  .vscode .fn { color: #dcdcaa; }
+  .vscode .va { color: #9cdcfe; }
+  .vscode .st { color: #ce9178; }
+  .vscode .nu { color: #b5cea8; }
+  .vscode .cm { color: #6a9955; }
+  .vscode .an { color: #dcdcaa; }
+  code { font-family: Consolas, monospace; font-size: 9.5pt; background: #eef2ee; padding: 0 .2em; border-radius: 3px; }
+  figure { margin: .8em 0 1.2em; break-inside: avoid; }
+  figure img { width: 100%; border: 1px solid #999; }
+  figcaption { font-size: 9.5pt; color: #444; text-align: center; margin-top: .3em; }
+  table { border-collapse: collapse; width: 100%; margin: .5em 0 1em; font-size: 10pt; break-inside: avoid; }
+  th, td { border: 1px solid #bbb; padding: .35em .5em; text-align: left; vertical-align: top; }
+  th { background: #e8f0e8; }
+  ul, ol { margin: .3em 0 .6em; padding-left: 1.6em; }
+  li { margin: .2em 0; }
+  .quebra { break-before: page; }
+  .refs li { margin: .4em 0; }
+</style>
+</head>
+<body>
+
+<div class="capa">
+  <h1>Pesquisa e Implementação de Padrões de Projeto GoF</h1>
+  <p><strong>Tema:</strong> Padrões de Projeto Strategy e Decorator</p>
+  <p><strong>Disciplina:</strong> Técnicas de Programação II (TPII)</p>
+  <p><strong>Professora:</strong> Me. Sirley Ambrosia Vitorio Addão</p>
+  <p><strong>Aluno:</strong> Ryan Leite</p>
+  <p><strong>Linguagem:</strong> Java (testado com o JDK 21)</p>
+  <p><strong>Repositório GitHub:</strong> <a href="https://github.com/Ryderzin/tp2-padroes-gof">https://github.com/Ryderzin/tp2-padroes-gof</a></p>
+</div>
+
+<h2>1. Parte I – Pesquisa teórica</h2>
+
+<p class="pergunta">1. O que são padrões de projeto GoF e qual é sua finalidade?</p>
+<p>Padrões de projeto são soluções reutilizáveis para problemas que se repetem no projeto de software orientado a objetos. Cada padrão tem um nome, descreve o problema que resolve, a estrutura da solução (classes, interfaces e como elas colaboram) e as consequências de usá-lo. O termo GoF (<em>Gang of Four</em>, "gangue dos quatro") vem dos quatro autores do livro <em>Design Patterns: Elements of Reusable Object-Oriented Software</em> (1994): Erich Gamma, Richard Helm, Ralph Johnson e John Vlissides, que catalogaram 23 padrões.</p>
+<p>A finalidade é aproveitar soluções já testadas em vez de reinventá-las, criando um vocabulário comum entre desenvolvedores ("aqui usamos um Strategy" já comunica toda uma estrutura). Os padrões ajudam a deixar o código mais flexível, com baixo acoplamento, fácil de manter e de estender. Eles seguem princípios como "programe para uma interface, não para uma implementação" e "prefira composição de objetos à herança de classes".</p>
+
+<p class="pergunta">2. Quais são as três categorias dos padrões GoF? Explique brevemente cada uma.</p>
+<table>
+  <tr><th style="width:20%">Categoria</th><th>Finalidade</th><th style="width:34%">Padrões</th></tr>
+  <tr><td><strong>Criacionais</strong></td><td>Tratam de como os objetos são criados, escondendo a lógica de criação e deixando o sistema independente de quais classes concretas são instanciadas.</td><td>Abstract Factory, Builder, Factory Method, Prototype, Singleton</td></tr>
+  <tr><td><strong>Estruturais</strong></td><td>Tratam de como classes e objetos são combinados para formar estruturas maiores, mantendo essas estruturas flexíveis e eficientes.</td><td>Adapter, Bridge, Composite, <strong>Decorator</strong>, Facade, Flyweight, Proxy</td></tr>
+  <tr><td><strong>Comportamentais</strong></td><td>Tratam de como os objetos se comunicam e dividem responsabilidades, e de como os algoritmos são distribuídos entre eles.</td><td>Chain of Responsibility, Command, Interpreter, Iterator, Mediator, Memento, Observer, State, <strong>Strategy</strong>, Template Method, Visitor</td></tr>
+</table>
+
+<p class="pergunta">3. O que é o padrão Strategy e em quais situações ele pode ser utilizado?</p>
+<p>O Strategy é um padrão <strong>comportamental</strong>. Segundo o GoF, ele define uma família de algoritmos, encapsula cada um deles numa classe própria e os torna intercambiáveis, permitindo que o algoritmo varie independentemente de quem o utiliza. A estrutura tem três partes: a <strong>interface da estratégia</strong> (o contrato comum), as <strong>estratégias concretas</strong> (cada uma com um algoritmo) e o <strong>contexto</strong>, que guarda uma referência para a interface e delega a ela o trabalho, sem saber qual implementação está usando.</p>
+<p>Situações de uso:</p>
+<ul>
+  <li>quando existem várias formas de fazer a mesma tarefa (calcular desconto, frete ou imposto; ordenar; validar; formas de pagamento) e é preciso escolher entre elas, inclusive em tempo de execução;</li>
+  <li>quando uma classe tem uma sequência grande de <code>if/else</code> ou <code>switch</code> para escolher o comportamento: cada ramo vira uma estratégia;</li>
+  <li>quando se quer isolar os detalhes de um algoritmo do restante do código, ou testar cada algoritmo separadamente;</li>
+  <li>quando novas variações devem poder ser adicionadas sem alterar o código existente (princípio Aberto/Fechado).</li>
+</ul>
+
+<p class="pergunta">4. O que é o padrão Decorator e em quais situações ele pode ser utilizado?</p>
+<p>O Decorator é um padrão <strong>estrutural</strong>. Segundo o GoF, ele acrescenta responsabilidades a um objeto de forma dinâmica, sendo uma alternativa flexível à criação de subclasses para estender funcionalidades. O decorador implementa a mesma interface do objeto que decora e guarda uma referência para ele ("embrulha" o objeto). Quando um método é chamado, o decorador repassa a chamada ao objeto embrulhado e acrescenta seu próprio comportamento antes ou depois. Como o decorador também é do mesmo tipo, é possível empilhar vários decoradores, um sobre o outro.</p>
+<p>Situações de uso:</p>
+<ul>
+  <li>quando é preciso adicionar funcionalidades a objetos individuais em tempo de execução, sem afetar outros objetos da mesma classe;</li>
+  <li>quando a herança levaria a uma "explosão de subclasses", uma para cada combinação de características (café com leite, café com chocolate, café com leite e chocolate...);</li>
+  <li>quando não é possível ou não é desejável alterar a classe original (por exemplo, uma classe de biblioteca ou marcada como <code>final</code>);</li>
+  <li>exemplos reais: os fluxos de entrada e saída do Java (<code>new BufferedReader(new InputStreamReader(System.in))</code>), que acrescentam buffer, compressão ou criptografia a um fluxo base, e <code>Collections.unmodifiableList(lista)</code>.</li>
+</ul>
+
+<p class="pergunta">5. Qual é a principal diferença entre os padrões Strategy e Decorator?</p>
+<p>A diferença está na intenção. O <strong>Strategy troca</strong> o comportamento: o contexto usa <em>uma</em> estratégia por vez, escolhida entre algoritmos alternativos que fazem a mesma tarefa de formas diferentes; muda-se "as entranhas" do objeto. O <strong>Decorator acrescenta</strong> comportamento: os decoradores se somam ao objeto original, podem ser combinados e empilhados, e o objeto continua sendo do mesmo tipo; muda-se "a pele" do objeto. Além disso, o Strategy é um padrão comportamental (foca em algoritmos intercambiáveis) e o Decorator é estrutural (foca em compor objetos para estender funcionalidades). No exemplo desta atividade: o desconto é <em>ou</em> 10% <em>ou</em> 20% (Strategy), enquanto o café pode ter leite <em>e</em> chocolate ao mesmo tempo (Decorator).</p>
+
+<h2 class="quebra">2. Parte II – Implementação do padrão Strategy</h2>
+<p><strong>Projeto:</strong> <code>strategy-descontos</code> (pacote <code>descontos</code>).</p>
+<p>A interface <code>EstrategiaDesconto</code> é o contrato comum. <code>SemDesconto</code>, <code>DescontoDezPorCento</code> e <code>DescontoVintePorCento</code> são as estratégias concretas. A <code>CalculadoraDesconto</code> é o contexto: recebe uma estratégia e apenas delega o cálculo a ela, sem nenhum <code>if/else</code>. A estratégia pode ser trocada em tempo de execução com <code>setEstrategia</code>. Além do método <code>calcularDesconto(double valor)</code> pedido no enunciado, a interface tem <code>getNome()</code>, usado só para exibir o nome de cada desconto no resultado.</p>
+<table>
+  <tr><th>Papel no padrão</th><th>Classe</th></tr>
+  <tr><td>Strategy (interface)</td><td><code>EstrategiaDesconto</code></td></tr>
+  <tr><td>Estratégias concretas</td><td><code>SemDesconto</code>, <code>DescontoDezPorCento</code>, <code>DescontoVintePorCento</code></td></tr>
+  <tr><td>Contexto</td><td><code>CalculadoraDesconto</code></td></tr>
+  <tr><td>Cliente</td><td><code>Main</code></td></tr>
+</table>
+
+<h3>2.1 Código-fonte</h3>
+<div class="editor"><div class="aba">EstrategiaDesconto.java</div><pre class="vscode"><span class="kw">package</span> <span class="va">descontos</span>;
+
+<span class="cm">/**
+ * Strategy: define o contrato comum a todas as formas de calcular desconto.
+ */</span>
+<span class="kw">public</span> <span class="kw">interface</span> <span class="ty">EstrategiaDesconto</span> {
+
+    <span class="cm">/**
+     * Aplica o desconto sobre o valor da compra.
+     *
+     * </span><span class="kw">@param</span><span class="cm"> valor valor original da compra
+     * </span><span class="kw">@return</span><span class="cm"> valor final, já com o desconto aplicado
+     */</span>
+    <span class="kw">double</span> <span class="fn">calcularDesconto</span>(<span class="kw">double</span> <span class="va">valor</span>);
+
+    <span class="cm">/** Nome da estratégia, usado para exibir o resultado. */</span>
+    <span class="ty">String</span> <span class="fn">getNome</span>();
+}</pre></div>
+<div class="editor"><div class="aba">SemDesconto.java</div><pre class="vscode"><span class="kw">package</span> <span class="va">descontos</span>;
+
+<span class="cm">/**
+ * Estratégia concreta: mantém o valor original da compra.
+ */</span>
+<span class="kw">public</span> <span class="kw">class</span> <span class="ty">SemDesconto</span> <span class="kw">implements</span> <span class="ty">EstrategiaDesconto</span> {
+
+    <span class="an">@Override</span>
+    <span class="kw">public</span> <span class="kw">double</span> <span class="fn">calcularDesconto</span>(<span class="kw">double</span> <span class="va">valor</span>) {
+        <span class="ct">return</span> <span class="va">valor</span>;
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">public</span> <span class="ty">String</span> <span class="fn">getNome</span>() {
+        <span class="ct">return</span> <span class="st">&quot;Sem desconto&quot;</span>;
+    }
+}</pre></div>
+<div class="editor"><div class="aba">DescontoDezPorCento.java</div><pre class="vscode"><span class="kw">package</span> <span class="va">descontos</span>;
+
+<span class="cm">/**
+ * Estratégia concreta: reduz o valor da compra em 10%.
+ */</span>
+<span class="kw">public</span> <span class="kw">class</span> <span class="ty">DescontoDezPorCento</span> <span class="kw">implements</span> <span class="ty">EstrategiaDesconto</span> {
+
+    <span class="an">@Override</span>
+    <span class="kw">public</span> <span class="kw">double</span> <span class="fn">calcularDesconto</span>(<span class="kw">double</span> <span class="va">valor</span>) {
+        <span class="ct">return</span> <span class="va">valor</span> * <span class="nu">0.90</span>;
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">public</span> <span class="ty">String</span> <span class="fn">getNome</span>() {
+        <span class="ct">return</span> <span class="st">&quot;Desconto de 10%&quot;</span>;
+    }
+}</pre></div>
+<div class="editor"><div class="aba">DescontoVintePorCento.java</div><pre class="vscode"><span class="kw">package</span> <span class="va">descontos</span>;
+
+<span class="cm">/**
+ * Estratégia concreta: reduz o valor da compra em 20%.
+ */</span>
+<span class="kw">public</span> <span class="kw">class</span> <span class="ty">DescontoVintePorCento</span> <span class="kw">implements</span> <span class="ty">EstrategiaDesconto</span> {
+
+    <span class="an">@Override</span>
+    <span class="kw">public</span> <span class="kw">double</span> <span class="fn">calcularDesconto</span>(<span class="kw">double</span> <span class="va">valor</span>) {
+        <span class="ct">return</span> <span class="va">valor</span> * <span class="nu">0.80</span>;
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">public</span> <span class="ty">String</span> <span class="fn">getNome</span>() {
+        <span class="ct">return</span> <span class="st">&quot;Desconto de 20%&quot;</span>;
+    }
+}</pre></div>
+<div class="editor"><div class="aba">CalculadoraDesconto.java</div><pre class="vscode"><span class="kw">package</span> <span class="va">descontos</span>;
+
+<span class="cm">/**
+ * Contexto do padrão Strategy: usa uma estratégia de desconto sem saber
+ * qual é a implementação concreta. Não há if/else para escolher o desconto;
+ * basta trocar a estratégia.
+ */</span>
+<span class="kw">public</span> <span class="kw">class</span> <span class="ty">CalculadoraDesconto</span> {
+
+    <span class="kw">private</span> <span class="ty">EstrategiaDesconto</span> <span class="va">estrategia</span>;
+
+    <span class="kw">public</span> <span class="ty">CalculadoraDesconto</span>(<span class="ty">EstrategiaDesconto</span> <span class="va">estrategia</span>) {
+        <span class="kw">this</span>.<span class="va">estrategia</span> = <span class="va">estrategia</span>;
+    }
+
+    <span class="cm">/** Permite trocar o comportamento em tempo de execução. */</span>
+    <span class="kw">public</span> <span class="kw">void</span> <span class="fn">setEstrategia</span>(<span class="ty">EstrategiaDesconto</span> <span class="va">estrategia</span>) {
+        <span class="kw">this</span>.<span class="va">estrategia</span> = <span class="va">estrategia</span>;
+    }
+
+    <span class="kw">public</span> <span class="ty">EstrategiaDesconto</span> <span class="fn">getEstrategia</span>() {
+        <span class="ct">return</span> <span class="va">estrategia</span>;
+    }
+
+    <span class="kw">public</span> <span class="kw">double</span> <span class="fn">calcular</span>(<span class="kw">double</span> <span class="va">valor</span>) {
+        <span class="ct">return</span> <span class="va">estrategia</span>.<span class="fn">calcularDesconto</span>(<span class="va">valor</span>);
+    }
+}</pre></div>
+<div class="editor"><div class="aba">Main.java</div><pre class="vscode"><span class="kw">package</span> <span class="va">descontos</span>;
+
+<span class="kw">import</span> <span class="va">java</span>.<span class="va">util</span>.<span class="ty">List</span>;
+<span class="kw">import</span> <span class="va">java</span>.<span class="va">util</span>.<span class="ty">Locale</span>;
+
+<span class="cm">/**
+ * Testa as três estratégias de desconto com uma compra de R$ 200,00.
+ */</span>
+<span class="kw">public</span> <span class="kw">class</span> <span class="ty">Main</span> {
+
+    <span class="kw">private</span> <span class="kw">static</span> <span class="kw">final</span> <span class="ty">Locale</span> <span class="va">PT_BR</span> = <span class="ty">Locale</span>.<span class="fn">forLanguageTag</span>(<span class="st">&quot;pt-BR&quot;</span>);
+
+    <span class="kw">public</span> <span class="kw">static</span> <span class="kw">void</span> <span class="fn">main</span>(<span class="ty">String</span>[] <span class="va">args</span>) {
+        <span class="kw">double</span> <span class="va">valorCompra</span> = <span class="nu">200.00</span>;
+
+        <span class="ty">System</span>.<span class="va">out</span>.<span class="fn">println</span>(<span class="st">&quot;Valor original: &quot;</span> + <span class="fn">formatar</span>(<span class="va">valorCompra</span>));
+        <span class="ty">System</span>.<span class="va">out</span>.<span class="fn">println</span>();
+
+        <span class="ty">List</span>&lt;<span class="ty">EstrategiaDesconto</span>&gt; <span class="va">estrategias</span> = <span class="ty">List</span>.<span class="fn">of</span>(
+                <span class="kw">new</span> <span class="ty">SemDesconto</span>(),
+                <span class="kw">new</span> <span class="ty">DescontoDezPorCento</span>(),
+                <span class="kw">new</span> <span class="ty">DescontoVintePorCento</span>());
+
+        <span class="ty">CalculadoraDesconto</span> <span class="va">calculadora</span> = <span class="kw">new</span> <span class="ty">CalculadoraDesconto</span>(<span class="kw">new</span> <span class="ty">SemDesconto</span>());
+
+        <span class="ct">for</span> (<span class="ty">EstrategiaDesconto</span> <span class="va">estrategia</span> : <span class="va">estrategias</span>) {
+            <span class="va">calculadora</span>.<span class="fn">setEstrategia</span>(<span class="va">estrategia</span>);
+            <span class="kw">double</span> <span class="va">valorFinal</span> = <span class="va">calculadora</span>.<span class="fn">calcular</span>(<span class="va">valorCompra</span>);
+            <span class="ty">System</span>.<span class="va">out</span>.<span class="fn">println</span>(<span class="va">estrategia</span>.<span class="fn">getNome</span>() + <span class="st">&quot;: &quot;</span> + <span class="fn">formatar</span>(<span class="va">valorFinal</span>));
+        }
+    }
+
+    <span class="kw">private</span> <span class="kw">static</span> <span class="ty">String</span> <span class="fn">formatar</span>(<span class="kw">double</span> <span class="va">valor</span>) {
+        <span class="ct">return</span> <span class="ty">String</span>.<span class="fn">format</span>(<span class="va">PT_BR</span>, <span class="st">&quot;R$ %,.2f&quot;</span>, <span class="va">valor</span>);
+    }
+}</pre></div>
+
+<h3>2.2 Execução</h3>
+<figure>
+  <img src="img/strategy.png" alt="Console do Windows compilando e executando o projeto strategy-descontos: valor original R$ 200,00; sem desconto R$ 200,00; desconto de 10% R$ 180,00; desconto de 20% R$ 160,00.">
+  <figcaption>Figura 1 – Compilação e execução do projeto Strategy (valor de R$ 200,00).</figcaption>
+</figure>
+
+<h2 class="quebra">3. Parte III – Implementação do padrão Decorator</h2>
+<p><strong>Projeto:</strong> <code>decorator-cafeteria</code> (pacote <code>cafeteria</code>).</p>
+<p>A interface <code>Cafe</code> define <code>getDescricao()</code> e <code>getPreco()</code>. <code>CafeSimples</code> é o café base (R$ 5,00). A classe abstrata <code>CafeDecorator</code> também implementa <code>Cafe</code> e recebe no construtor o café que vai decorar. <code>LeiteDecorator</code> (+ R$ 2,00) e <code>ChocolateDecorator</code> (+ R$ 3,00) estendem o decorador, chamam o café embrulhado e somam o seu valor e a sua descrição. Os ingredientes são combinados em tempo de execução, sem alterar <code>CafeSimples</code> e sem classes para cada combinação.</p>
+<table>
+  <tr><th>Papel no padrão</th><th>Classe</th></tr>
+  <tr><td>Componente (interface)</td><td><code>Cafe</code></td></tr>
+  <tr><td>Componente concreto</td><td><code>CafeSimples</code></td></tr>
+  <tr><td>Decorator (abstrato)</td><td><code>CafeDecorator</code></td></tr>
+  <tr><td>Decoradores concretos</td><td><code>LeiteDecorator</code>, <code>ChocolateDecorator</code></td></tr>
+  <tr><td>Cliente</td><td><code>Main</code></td></tr>
+</table>
+
+<h3>3.1 Código-fonte</h3>
+<div class="editor"><div class="aba">Cafe.java</div><pre class="vscode"><span class="kw">package</span> <span class="va">cafeteria</span>;
+
+<span class="cm">/**
+ * Componente do padrão Decorator: o que todo café (simples ou decorado) sabe fazer.
+ */</span>
+<span class="kw">public</span> <span class="kw">interface</span> <span class="ty">Cafe</span> {
+
+    <span class="ty">String</span> <span class="fn">getDescricao</span>();
+
+    <span class="kw">double</span> <span class="fn">getPreco</span>();
+}</pre></div>
+<div class="editor"><div class="aba">CafeSimples.java</div><pre class="vscode"><span class="kw">package</span> <span class="va">cafeteria</span>;
+
+<span class="cm">/**
+ * Componente concreto: o café base, sem adicionais.
+ */</span>
+<span class="kw">public</span> <span class="kw">class</span> <span class="ty">CafeSimples</span> <span class="kw">implements</span> <span class="ty">Cafe</span> {
+
+    <span class="an">@Override</span>
+    <span class="kw">public</span> <span class="ty">String</span> <span class="fn">getDescricao</span>() {
+        <span class="ct">return</span> <span class="st">&quot;Café simples&quot;</span>;
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">public</span> <span class="kw">double</span> <span class="fn">getPreco</span>() {
+        <span class="ct">return</span> <span class="nu">5.00</span>;
+    }
+}</pre></div>
+<div class="editor"><div class="aba">CafeDecorator.java</div><pre class="vscode"><span class="kw">package</span> <span class="va">cafeteria</span>;
+
+<span class="cm">/**
+ * Decorator abstrato: também é um Cafe e guarda o café que está &quot;embrulhando&quot;.
+ * Por padrão, repassa as chamadas ao café embrulhado; as subclasses
+ * acrescentam a descrição e o preço do ingrediente.
+ */</span>
+<span class="kw">public</span> <span class="kw">abstract</span> <span class="kw">class</span> <span class="ty">CafeDecorator</span> <span class="kw">implements</span> <span class="ty">Cafe</span> {
+
+    <span class="kw">protected</span> <span class="kw">final</span> <span class="ty">Cafe</span> <span class="va">cafe</span>;
+
+    <span class="kw">protected</span> <span class="ty">CafeDecorator</span>(<span class="ty">Cafe</span> <span class="va">cafe</span>) {
+        <span class="kw">this</span>.<span class="va">cafe</span> = <span class="va">cafe</span>;
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">public</span> <span class="ty">String</span> <span class="fn">getDescricao</span>() {
+        <span class="ct">return</span> <span class="va">cafe</span>.<span class="fn">getDescricao</span>();
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">public</span> <span class="kw">double</span> <span class="fn">getPreco</span>() {
+        <span class="ct">return</span> <span class="va">cafe</span>.<span class="fn">getPreco</span>();
+    }
+}</pre></div>
+<div class="editor"><div class="aba">LeiteDecorator.java</div><pre class="vscode"><span class="kw">package</span> <span class="va">cafeteria</span>;
+
+<span class="cm">/**
+ * Decorator concreto: acrescenta leite (R$ 2,00).
+ */</span>
+<span class="kw">public</span> <span class="kw">class</span> <span class="ty">LeiteDecorator</span> <span class="kw">extends</span> <span class="ty">CafeDecorator</span> {
+
+    <span class="kw">public</span> <span class="ty">LeiteDecorator</span>(<span class="ty">Cafe</span> <span class="va">cafe</span>) {
+        <span class="kw">super</span>(<span class="va">cafe</span>);
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">public</span> <span class="ty">String</span> <span class="fn">getDescricao</span>() {
+        <span class="ct">return</span> <span class="va">cafe</span>.<span class="fn">getDescricao</span>() + <span class="st">&quot;, leite&quot;</span>;
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">public</span> <span class="kw">double</span> <span class="fn">getPreco</span>() {
+        <span class="ct">return</span> <span class="va">cafe</span>.<span class="fn">getPreco</span>() + <span class="nu">2.00</span>;
+    }
+}</pre></div>
+<div class="editor"><div class="aba">ChocolateDecorator.java</div><pre class="vscode"><span class="kw">package</span> <span class="va">cafeteria</span>;
+
+<span class="cm">/**
+ * Decorator concreto: acrescenta chocolate (R$ 3,00).
+ */</span>
+<span class="kw">public</span> <span class="kw">class</span> <span class="ty">ChocolateDecorator</span> <span class="kw">extends</span> <span class="ty">CafeDecorator</span> {
+
+    <span class="kw">public</span> <span class="ty">ChocolateDecorator</span>(<span class="ty">Cafe</span> <span class="va">cafe</span>) {
+        <span class="kw">super</span>(<span class="va">cafe</span>);
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">public</span> <span class="ty">String</span> <span class="fn">getDescricao</span>() {
+        <span class="ct">return</span> <span class="va">cafe</span>.<span class="fn">getDescricao</span>() + <span class="st">&quot;, chocolate&quot;</span>;
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">public</span> <span class="kw">double</span> <span class="fn">getPreco</span>() {
+        <span class="ct">return</span> <span class="va">cafe</span>.<span class="fn">getPreco</span>() + <span class="nu">3.00</span>;
+    }
+}</pre></div>
+<div class="editor"><div class="aba">Main.java</div><pre class="vscode"><span class="kw">package</span> <span class="va">cafeteria</span>;
+
+<span class="kw">import</span> <span class="va">java</span>.<span class="va">util</span>.<span class="ty">Locale</span>;
+
+<span class="cm">/**
+ * Demonstra a personalização do café empilhando decoradores.
+ */</span>
+<span class="kw">public</span> <span class="kw">class</span> <span class="ty">Main</span> {
+
+    <span class="kw">private</span> <span class="kw">static</span> <span class="kw">final</span> <span class="ty">Locale</span> <span class="va">PT_BR</span> = <span class="ty">Locale</span>.<span class="fn">forLanguageTag</span>(<span class="st">&quot;pt-BR&quot;</span>);
+
+    <span class="kw">public</span> <span class="kw">static</span> <span class="kw">void</span> <span class="fn">main</span>(<span class="ty">String</span>[] <span class="va">args</span>) {
+        <span class="ty">Cafe</span> <span class="va">cafe</span> = <span class="kw">new</span> <span class="ty">CafeSimples</span>();
+        <span class="fn">exibir</span>(<span class="st">&quot;Café simples&quot;</span>, <span class="va">cafe</span>);
+
+        <span class="va">cafe</span> = <span class="kw">new</span> <span class="ty">LeiteDecorator</span>(<span class="va">cafe</span>);
+        <span class="fn">exibir</span>(<span class="st">&quot;Café com leite&quot;</span>, <span class="va">cafe</span>);
+
+        <span class="va">cafe</span> = <span class="kw">new</span> <span class="ty">ChocolateDecorator</span>(<span class="va">cafe</span>);
+        <span class="fn">exibir</span>(<span class="st">&quot;Café com leite e chocolate&quot;</span>, <span class="va">cafe</span>);
+
+        <span class="ty">System</span>.<span class="va">out</span>.<span class="fn">println</span>(<span class="st">&quot;Composição do último pedido: &quot;</span> + <span class="va">cafe</span>.<span class="fn">getDescricao</span>());
+    }
+
+    <span class="kw">private</span> <span class="kw">static</span> <span class="kw">void</span> <span class="fn">exibir</span>(<span class="ty">String</span> <span class="va">titulo</span>, <span class="ty">Cafe</span> <span class="va">cafe</span>) {
+        <span class="ty">System</span>.<span class="va">out</span>.<span class="fn">println</span>(<span class="va">titulo</span> + <span class="st">&quot;: &quot;</span> + <span class="ty">String</span>.<span class="fn">format</span>(<span class="va">PT_BR</span>, <span class="st">&quot;R$ %,.2f&quot;</span>, <span class="va">cafe</span>.<span class="fn">getPreco</span>()));
+        <span class="ty">System</span>.<span class="va">out</span>.<span class="fn">println</span>();
+    }
+}</pre></div>
+
+<h3>3.2 Execução</h3>
+<figure>
+  <img src="img/decorator.png" alt="Console do Windows compilando e executando o projeto decorator-cafeteria: café simples R$ 5,00; café com leite R$ 7,00; café com leite e chocolate R$ 10,00.">
+  <figcaption>Figura 2 – Compilação e execução do projeto Decorator.</figcaption>
+</figure>
+
+<h2 class="quebra">4. Parte IV – Análise dos resultados</h2>
+
+<p class="pergunta">1. No exemplo do Strategy, qual é a vantagem de utilizar uma interface para representar as estratégias de desconto?</p>
+<p>A interface <code>EstrategiaDesconto</code> funciona como um contrato: a <code>CalculadoraDesconto</code> depende apenas dela, e não das classes concretas. Com isso:</p>
+<ul>
+  <li><strong>baixo acoplamento:</strong> a calculadora não sabe nem precisa saber qual desconto está aplicando; ela só chama <code>calcularDesconto</code>;</li>
+  <li><strong>sem <code>if/else</code>:</strong> o polimorfismo escolhe o comportamento certo, então a calculadora não precisa testar o tipo de desconto;</li>
+  <li><strong>troca em tempo de execução:</strong> basta passar outra estratégia (<code>setEstrategia</code>), como o <code>Main</code> faz no laço;</li>
+  <li><strong>extensão sem modificação (princípio Aberto/Fechado):</strong> novos descontos entram sem mexer no código existente;</li>
+  <li><strong>responsabilidade única e testes mais simples:</strong> cada regra de desconto fica numa classe pequena, que pode ser testada isoladamente.</li>
+</ul>
+
+<p class="pergunta">2. Como seria possível adicionar uma nova estratégia de desconto de 30%?</p>
+<p>Basta criar uma nova classe que implemente <code>EstrategiaDesconto</code> e usá-la no cliente. <code>CalculadoraDesconto</code> e as outras estratégias não mudam:</p>
+<pre class="vscode"><span class="kw">public</span> <span class="kw">class</span> <span class="ty">DescontoTrintaPorCento</span> <span class="kw">implements</span> <span class="ty">EstrategiaDesconto</span> {
+
+    <span class="an">@Override</span>
+    <span class="kw">public</span> <span class="kw">double</span> <span class="fn">calcularDesconto</span>(<span class="kw">double</span> <span class="va">valor</span>) {
+        <span class="ct">return</span> <span class="va">valor</span> * <span class="nu">0.70</span>;
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">public</span> <span class="ty">String</span> <span class="fn">getNome</span>() {
+        <span class="ct">return</span> <span class="st">&quot;Desconto de 30%&quot;</span>;
+    }
+}
+
+<span class="cm">// Uso:</span>
+<span class="va">calculadora</span>.<span class="fn">setEstrategia</span>(<span class="kw">new</span> <span class="ty">DescontoTrintaPorCento</span>());
+<span class="va">calculadora</span>.<span class="fn">calcular</span>(<span class="nu">200.00</span>);   <span class="cm">// R$ 140,00</span></pre>
+
+<p class="pergunta">3. No exemplo do Decorator, como os ingredientes são adicionados ao café sem alterar a classe original?</p>
+<p>Por <strong>composição</strong>, e não por herança da classe original. Cada decorador implementa a mesma interface <code>Cafe</code> e guarda uma referência para o café que recebeu no construtor. Ao calcular o preço, ele pergunta o preço ao café embrulhado e soma o valor do seu ingrediente; o mesmo acontece com a descrição. Como o resultado continua sendo um <code>Cafe</code>, ele pode ser embrulhado de novo, formando uma cadeia:</p>
+<pre>Cafe cafe = new ChocolateDecorator(new LeiteDecorator(new CafeSimples()));
+
+cafe.getPreco()
+  -> ChocolateDecorator: getPreco() do café embrulhado + 3,00
+       -> LeiteDecorator: getPreco() do café embrulhado + 2,00
+            -> CafeSimples: 5,00
+  = 5,00 + 2,00 + 3,00 = R$ 10,00</pre>
+<p>A classe <code>CafeSimples</code> nunca é modificada, e não há uma classe para cada combinação: com 2 ingredientes, são 2 decoradores que podem ser combinados livremente (inclusive repetidos, como leite duplo), em vez de uma subclasse para cada mistura possível.</p>
+
+<p class="pergunta">4. Como seria possível adicionar um novo ingrediente, como chantilly, utilizando o padrão Decorator?</p>
+<p>Criando um novo decorador que estenda <code>CafeDecorator</code>, sem alterar nenhuma classe existente. Supondo um preço de R$ 2,50 para o chantilly (o enunciado não define esse valor):</p>
+<pre class="vscode"><span class="kw">public</span> <span class="kw">class</span> <span class="ty">ChantillyDecorator</span> <span class="kw">extends</span> <span class="ty">CafeDecorator</span> {
+
+    <span class="kw">public</span> <span class="ty">ChantillyDecorator</span>(<span class="ty">Cafe</span> <span class="va">cafe</span>) {
+        <span class="kw">super</span>(<span class="va">cafe</span>);
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">public</span> <span class="ty">String</span> <span class="fn">getDescricao</span>() {
+        <span class="ct">return</span> <span class="va">cafe</span>.<span class="fn">getDescricao</span>() + <span class="st">&quot;, chantilly&quot;</span>;
+    }
+
+    <span class="an">@Override</span>
+    <span class="kw">public</span> <span class="kw">double</span> <span class="fn">getPreco</span>() {
+        <span class="ct">return</span> <span class="va">cafe</span>.<span class="fn">getPreco</span>() + <span class="nu">2.50</span>;
+    }
+}
+
+<span class="cm">// Uso: combina com os ingredientes que já existem</span>
+<span class="ty">Cafe</span> <span class="va">pedido</span> = <span class="kw">new</span> <span class="ty">ChantillyDecorator</span>(<span class="kw">new</span> <span class="ty">ChocolateDecorator</span>(<span class="kw">new</span> <span class="ty">CafeSimples</span>()));
+<span class="va">pedido</span>.<span class="fn">getPreco</span>();   <span class="cm">// 5,00 + 3,00 + 2,50 = R$ 10,50</span></pre>
+
+<h2>5. Referências</h2>
+<ol class="refs">
+  <li>GAMMA, Erich; HELM, Richard; JOHNSON, Ralph; VLISSIDES, John. <strong>Padrões de projeto:</strong> soluções reutilizáveis de software orientado a objetos. Porto Alegre: Bookman, 2000. (Original: <em>Design Patterns: Elements of Reusable Object-Oriented Software</em>. Addison-Wesley, 1994.)</li>
+  <li>FREEMAN, Eric; ROBSON, Elisabeth. <strong>Use a Cabeça! Padrões de Projetos</strong>. 2. ed. Rio de Janeiro: Alta Books, 2021. Capítulos 1 (Strategy) e 3 (Decorator).</li>
+  <li>REFACTORING.GURU. <strong>Strategy</strong>. Disponível em: <a href="https://refactoring.guru/pt-br/design-patterns/strategy">https://refactoring.guru/pt-br/design-patterns/strategy</a>. Acesso em: 25 nov. 2026.</li>
+  <li>REFACTORING.GURU. <strong>Decorator</strong>. Disponível em: <a href="https://refactoring.guru/pt-br/design-patterns/decorator">https://refactoring.guru/pt-br/design-patterns/decorator</a>. Acesso em: 25 nov. 2026.</li>
+  <li>REFACTORING.GURU. <strong>Catálogo dos padrões de projeto</strong>. Disponível em: <a href="https://refactoring.guru/pt-br/design-patterns/catalog">https://refactoring.guru/pt-br/design-patterns/catalog</a>. Acesso em: 25 nov. 2026.</li>
+  <li>ORACLE. <strong>Java SE 21 &amp; JDK 21 – API Specification</strong> (classes <code>java.io.BufferedReader</code> e <code>java.util.Locale</code>). Disponível em: <a href="https://docs.oracle.com/en/java/javase/21/docs/api/">https://docs.oracle.com/en/java/javase/21/docs/api/</a>. Acesso em: 25 nov. 2026.</li>
+</ol>
+
+<h2>6. Repositório</h2>
+<p>Os dois projetos (com instruções para compilar e executar no <code>README.md</code>) estão em: <a href="https://github.com/Ryderzin/tp2-padroes-gof">https://github.com/Ryderzin/tp2-padroes-gof</a></p>
+
+</body>
+</html>
